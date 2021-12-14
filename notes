@@ -1,0 +1,103 @@
+        import org.eclipse.rdf4j.model.*;
+        import org.eclipse.rdf4j.model.impl.LinkedHashModel;
+        import org.eclipse.rdf4j.model.util.ModelBuilder;
+        import org.eclipse.rdf4j.model.util.Models;
+        import org.eclipse.rdf4j.model.util.RDFCollections;
+        import org.eclipse.rdf4j.model.vocabulary.FOAF;
+        import org.eclipse.rdf4j.model.vocabulary.RDF;
+
+        import java.util.ArrayList;
+        import java.util.Arrays;
+        import java.util.List;
+        import java.util.Optional;
+
+        import static org.eclipse.rdf4j.model.util.Values.*;
+
+
+
+
+
+        ModelBuilder builder = new ModelBuilder();
+
+        // set some namespaces
+        builder.setNamespace("ex", "http://example.org/").setNamespace(FOAF.NS);
+
+        builder.namedGraph("ex:graph1")      // add a new named graph to the model
+                .subject("ex:john")        // add  several statements about resource ex:john
+                .add(RDF.TYPE, FOAF.PERSON)
+                .add(FOAF.NAME, "John")  // add the triple (ex:john, foaf:name "John") to the named graph
+                .add(FOAF.AGE, 42)
+                .add(FOAF.MBOX, "john@example.org");
+
+        builder.namedGraph("ex:graph1")      // add a new named graph to the model
+                .subject("ex:george")        // add  several statements about resource ex:john
+                .add(RDF.TYPE, FOAF.PERSON)
+                .add(FOAF.NAME, "george")  // add the triple (ex:john, foaf:name "John") to the named graph
+                .add(FOAF.AGE, 22)
+                .add(FOAF.MBOX, "george@example.org");
+
+        // add a triple to the default graph
+        builder.defaultGraph().add("ex:graph1", RDF.TYPE, "ex:Graph");
+
+        // return the Model object
+        Model model = builder.build();
+
+        ArrayList<String> list_of_names = new ArrayList<>();
+        Optional<Literal> name;
+        for (Resource person: model.filter(null, RDF.TYPE, FOAF.PERSON).subjects()) {
+            // get the name of the person (if it exists)
+            name = Models.getPropertyLiteral(model, person, FOAF.NAME);
+            list_of_names.add(String.valueOf(name.stream().toList()));
+
+        }
+        for (String n : list_of_names)
+            System.out.println(n);
+
+        rdf_collection();
+
+
+
+
+
+        private static void rdf_collection(){
+                String ns = "http://example.org/";
+                // IRI for ex:favoriteLetters
+                IRI favoriteLetters = iri(ns, "favoriteLetters");
+                // IRI for ex:John
+                IRI john = iri(ns, "John");
+                // create a list of letters
+                List<Literal> letters = Arrays.asList(literal("A"), literal("B"), literal("C"));
+                // create a head resource for our list
+                Resource head = bnode();
+                // convert our list and add it to a newly-created Model
+                Model aboutJohn = RDFCollections.asRDF(letters, head, new LinkedHashModel());
+                // set the ex:favoriteLetters property to link to the head of the list
+                aboutJohn.add(john, favoriteLetters, head);
+
+
+                System.out.println(aboutJohn.subjects() +", " + aboutJohn.predicates() + ", " + aboutJohn.objects());
+
+
+                // get the value of the ex:favoriteLetters property
+                Resource node = Models.objectResource(aboutJohn.filter(john, favoriteLetters, null)).orElse(null);
+                // Convert its collection back to an ArrayList of values
+                if(node != null) {
+                    List<Value> values = RDFCollections.asValues(aboutJohn, node, new ArrayList<>());
+                    // you may need to cast back to Literal.
+                    ArrayList<Literal> a = new ArrayList<>();
+                    for (Value v : values){
+                        a.add((Literal) v);
+                    }
+                    for (Literal lit : a){
+                        System.out.println(lit);
+                    }
+
+                }
+
+                // get the RDF Collection in a separate model
+                if (node != null) {
+                    Model rdfList = RDFCollections.getCollection(aboutJohn, node, new LinkedHashModel());
+                    System.out.println(rdfList);
+                }
+
+            }
