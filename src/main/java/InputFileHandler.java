@@ -19,17 +19,31 @@ public class InputFileHandler {
 
         // insert data Stringo a JSONArray
         JSONArray dataArray = (JSONArray)jsonObj.get("data");
+        long[][] sleepData = new long[dataArray.size()][5];
         // iterate JSONArray to take each value given specific key
+        int i = 0;
         for (Object o : dataArray) {
             JSONObject dataRow = (JSONObject) o;
             long lightMinutes = (long) dataRow.get("light_minutes");
+            sleepData[i][0] = lightMinutes;
             long remMinutes = (long) dataRow.get("rem_minutes");
+            sleepData[i][1] = remMinutes;
             long deepMinutes = (long) dataRow.get("deep_minutes");
+            sleepData[i][2] = deepMinutes;
             long minutesAwake = (long) dataRow.get("minutes_awake");
+            sleepData[i][3] = minutesAwake;
             long minutesAsleep = (long) dataRow.get("minutes_asleep");
-            long totalMinutes = minutesAsleep + minutesAwake;
+            sleepData[i][4] = minutesAsleep;
             String timeSeries = (String) dataRow.get("timeseries");
-            System.out.println(lightMinutes +", "+ remMinutes +", "+ deepMinutes +", "+ minutesAwake +", "+ minutesAsleep +", "+ totalMinutes +", "+ timeSeries);
+            i++;
+            System.out.println(lightMinutes +", "+ remMinutes +", "+ deepMinutes +", "+ minutesAwake +", "+ minutesAsleep +", "+ timeSeries);
+        }
+        System.out.println();
+        for(int k=0; k<dataArray.size();k++){
+            for(int j=0; j<5;j++){
+                System.out.print(sleepData[k][j] + ", ");
+            }
+            System.out.println();
         }
     }
 }
