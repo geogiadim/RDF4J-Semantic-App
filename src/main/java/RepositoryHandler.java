@@ -10,14 +10,14 @@ import static org.eclipse.rdf4j.model.util.Values.literal;
 
 public class RepositoryHandler {
     // URL of the remote RDF4J Server we want to access
-    private final String SERVER_URL = "http://localhost:7200/";
+    private static final String SERVER_URL = "http://localhost:7200/";
     // ID of repository we want to access
-    private final String REPO_ID = "rdf4j-repo";
-    private RemoteRepositoryManager manager;
-    private Repository repo;
-    private RepositoryConnection con;
+    private static final String REPO_ID = "rdf4j-repo";
+    private static RemoteRepositoryManager manager;
+    private static Repository repo;
+    private static RepositoryConnection con;
 
-    public RepositoryHandler(){
+    static void initRepo(){
         // initiate a remote repo manager
         manager = new RemoteRepositoryManager(SERVER_URL);
         manager.init();
@@ -27,18 +27,21 @@ public class RepositoryHandler {
 
         // connect to the repo
         con = repo.getConnection();
-        con.begin();
 
-        IRI bob = iri("urn:bob");
+        con.begin();
+        IRI bob = iri("urn:bob3");
         con.add(bob, RDF.TYPE, FOAF.PERSON);
         con.add(bob, RDFS.LABEL, literal("person named Bob"));
         con.commit();
     }
+    static void closeConn(){
+        con.close();
+    }
 
-    String getSERVER_URL() { return SERVER_URL; }
+    static String getSERVER_URL() { return SERVER_URL; }
     String getREPO_ID() { return  REPO_ID; }
-    RemoteRepositoryManager getManager() { return manager; }
-    Repository getRepo() { return repo; }
-    RepositoryConnection getRepoConnection() { return con; }
+    static RemoteRepositoryManager getManager() { return manager; }
+    static Repository getRepo() { return repo; }
+    static RepositoryConnection getRepoConnection() { return con; }
 
 }
