@@ -69,14 +69,16 @@ public class RepositoryHandler {
     }
 
     static void getSleepStatements(){
-//        IRI patient = iri("http://www.semanticweb.org/patient-observations#TMS6");
-//        try (RepositoryResult<Statement> statements = con.getStatements(patient, null, null, true)) {
-//            while (statements.hasNext()) {
-//                Statement st = statements.next();
-//                System.out.println(st.getObject());
-//                System.out.println("ssds");
-//            }
-//        }
+        try (RepositoryResult<Statement> statements = con.getStatements(null, RDF.TYPE, iri(PERSON), true)) {
+            while (statements.hasNext()) {
+                Statement st = statements.next();
+                RepositoryResult<Statement> statements2 = con.getStatements(null, iri(IS_OBS_FOR),st.getSubject());
+                while(statements2.hasNext()){
+                    Statement observation = statements2.next();
+                    System.out.println("Observation: "+ observation.getSubject());
+                }
+            }
+        }
     }
 
     static void closeConn(){ con.close(); }

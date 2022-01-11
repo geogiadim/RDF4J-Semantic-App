@@ -7,6 +7,7 @@ public class Main {
         InputFileHandler.JsonReader();
         RepositoryHandler.initRepo();
         RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray());
+        RepositoryHandler.getSleepStatements();
         RepositoryHandler.closeConn();
 
 
