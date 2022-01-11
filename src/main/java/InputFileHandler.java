@@ -14,7 +14,7 @@ public class InputFileHandler {
         // initialize a jason parser
         JSONParser jsonParser = new JSONParser();
         // initialize a file reader with hardcoded file path
-        FileReader reader  = new FileReader("./Files/TMS6-Sleep2.json");
+        FileReader reader  = new FileReader("./Files/TMS6-Sleep.json");
         // create object that parses all json data
         Object obj = jsonParser.parse(reader);
         // cast obj as JSONObject
