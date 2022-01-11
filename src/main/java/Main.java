@@ -4,9 +4,10 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException, ParseException {
-//        RepositoryHandler.initRepo();
         InputFileHandler.JsonReader();
-
+        RepositoryHandler.initRepo();
+        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray());
+        RepositoryHandler.closeConn();
 
 
 

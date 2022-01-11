@@ -7,6 +7,9 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class InputFileHandler {
+    private static String[] timeseriesArray;
+    private static long[][] sleepData;
+
     public static void JsonReader() throws IOException, ParseException {
         // initialize a jason parser
         JSONParser jsonParser = new JSONParser();
@@ -17,9 +20,11 @@ public class InputFileHandler {
         // cast obj as JSONObject
         JSONObject jsonObj = (JSONObject) obj;
 
-        // insert data Stringo a JSONArray
+        // insert data in JSONArray
         JSONArray dataArray = (JSONArray)jsonObj.get("data");
-        long[][] sleepData = new long[dataArray.size()][5];
+        // initialize the two arrays
+        sleepData = new long[dataArray.size()][5];
+        timeseriesArray = new String[dataArray.size()];
         // iterate JSONArray to take each value given specific key
         int i = 0;
         for (Object o : dataArray) {
@@ -35,15 +40,24 @@ public class InputFileHandler {
             long minutesAsleep = (long) dataRow.get("minutes_asleep");
             sleepData[i][4] = minutesAsleep;
             String timeSeries = (String) dataRow.get("timeseries");
+            timeseriesArray[i] = timeSeries;
             i++;
-            System.out.println(lightMinutes +", "+ remMinutes +", "+ deepMinutes +", "+ minutesAwake +", "+ minutesAsleep +", "+ timeSeries);
+//            System.out.println(lightMinutes +", "+ remMinutes +", "+ deepMinutes +", "+ minutesAwake +", "+ minutesAsleep +", "+ timeSeries);
         }
-        System.out.println();
-        for(int k=0; k<dataArray.size();k++){
+        printSleepData();
+
+    }
+
+    private static void printSleepData(){
+        for(int k=0; k<timeseriesArray.length; k++){
             for(int j=0; j<5;j++){
                 System.out.print(sleepData[k][j] + ", ");
             }
-            System.out.println();
+            System.out.println(timeseriesArray[k]);
         }
     }
+
+    public static long[][] getSleepData() { return sleepData; }
+    public static String[] getTimeseriesArray() { return timeseriesArray; }
+
 }
