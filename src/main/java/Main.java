@@ -3,49 +3,21 @@ import org.json.simple.parser.ParseException;
 import java.io.IOException;
 
 public class Main {
+    private static final String PATH_TO_SLEEP_TMS6 = "./Files/TMS6-Sleep.json";
+    private static final String PATH_TO_STEPS_TMS6 = "./Files/TMS6-Steps.json";
+    private static final String PATH_TO_HR_TMS6 = "./Files/TMS6-HeartRates.json";
+    private static final String PATH_TO_SLEEP_TMS7 = "./Files/TMS7-Sleep.json";
+    private static final String PATH_TO_STEPS_TMS7 = "./Files/TMS7-Steps.json";
+    private static final String PATH_TO_HR_TMS7 = "./Files/TMS7-HeartRates.json";
+
     public static void main(String[] args) throws IOException, ParseException {
-        InputFileHandler.JsonReader();
         RepositoryHandler.initRepo();
-        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray());
-        RepositoryHandler.getSleepStatements();
+
+        InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS6);
+        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+        InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS7);
+        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+
         RepositoryHandler.closeConn();
-
-
-
-
-
-
-//
-//        // Instantiate a repository graph model
-//        TreeModel graph = new TreeModel();
-//
-//        // Read repository configuration file
-//        InputStream config = EmbeddedGraphDB.class.getResourceAsStream("/repo-defaults.ttl");
-//        RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
-//        rdfParser.setRDFHandler(new StatementCollector(graph));
-//        rdfParser.parse(config, RepositoryConfigSchema.NAMESPACE);
-//        config.close();
-//
-//
-//
-//        // Retrieve the repository node as a resource
-//        Resource repositoryNode = GraphUtil.getUniqueSubject(graph, RDF.TYPE, RepositoryConfigSchema.REPOSITORY);
-//
-//        // Create a repository configuration object and add it to the repositoryManager
-//        RepositoryConfig repositoryConfig = RepositoryConfig.create(graph, repositoryNode);
-//        repositoryManager.addRepositoryConfig(repositoryConfig);
-//
-//        // Get the repository from repository manager, note the repository id set in configuration .ttl file
-//        Repository repository = repositoryManager.getRepository("graphdb-repo");
-//
-//        // Open a connection to this repository
-//        RepositoryConnection repositoryConnection = repository.getConnection();
-//
-//        // ... use the repository
-//
-//        // Shutdown connection, repository and manager
-//        repositoryConnection.close();
-//        repository.shutDown();
-//        repositoryManager.shutDown();
     }
 }

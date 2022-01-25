@@ -17,11 +17,46 @@
 #    Object Properties
 #################################################################
 
+###  http://www.semanticweb.org/patient-observations#hasHeartRateProblem
+pob:hasHeartRateProblem rdf:type owl:ObjectProperty ;
+                        rdfs:subPropertyOf pob:hasProblem ;
+                        owl:inverseOf pob:isHeartRateProblemOf .
+
+
+###  http://www.semanticweb.org/patient-observations#hasMovementProblem
+pob:hasMovementProblem rdf:type owl:ObjectProperty ;
+                       rdfs:subPropertyOf pob:hasProblem ;
+                       owl:inverseOf pob:isMoveMentProblemOf .
+
+
 ###  http://www.semanticweb.org/patient-observations#hasObservation
 pob:hasObservation rdf:type owl:ObjectProperty ;
                    owl:inverseOf pob:isObservationFor ;
                    rdfs:domain pob:Patient ;
                    rdfs:range sosa:Observation .
+
+
+###  http://www.semanticweb.org/patient-observations#hasProblem
+pob:hasProblem rdf:type owl:ObjectProperty ;
+               owl:inverseOf pob:isProblemOf ;
+               rdfs:domain pob:Patient ;
+               rdfs:range pob:HealthProblem .
+
+
+###  http://www.semanticweb.org/patient-observations#hasSleepProblem
+pob:hasSleepProblem rdf:type owl:ObjectProperty ;
+                    rdfs:subPropertyOf pob:hasProblem ;
+                    owl:inverseOf pob:isSleepProblemOf .
+
+
+###  http://www.semanticweb.org/patient-observations#isHeartRateProblemOf
+pob:isHeartRateProblemOf rdf:type owl:ObjectProperty ;
+                         rdfs:subPropertyOf pob:isProblemOf .
+
+
+###  http://www.semanticweb.org/patient-observations#isMoveMentProblemOf
+pob:isMoveMentProblemOf rdf:type owl:ObjectProperty ;
+                        rdfs:subPropertyOf pob:isProblemOf .
 
 
 ###  http://www.semanticweb.org/patient-observations#isObservationFor
@@ -30,9 +65,35 @@ pob:isObservationFor rdf:type owl:ObjectProperty ;
                      rdfs:range pob:Patient .
 
 
+###  http://www.semanticweb.org/patient-observations#isProblemOf
+pob:isProblemOf rdf:type owl:ObjectProperty ;
+                rdfs:domain pob:HealthProblem ;
+                rdfs:range pob:Patient .
+
+
+###  http://www.semanticweb.org/patient-observations#isSleepProblemOf
+pob:isSleepProblemOf rdf:type owl:ObjectProperty ;
+                     rdfs:subPropertyOf pob:isProblemOf .
+
+
 #################################################################
 #    Data properties
 #################################################################
+
+###  http://www.semanticweb.org/patient-observations#asleepMinutes
+pob:asleepMinutes rdf:type owl:DatatypeProperty ;
+                  rdfs:range xsd:integer .
+
+
+###  http://www.semanticweb.org/patient-observations#awakeMinutes
+pob:awakeMinutes rdf:type owl:DatatypeProperty ;
+                 rdfs:range xsd:integer .
+
+
+###  http://www.semanticweb.org/patient-observations#deepCount
+pob:deepCount rdf:type owl:DatatypeProperty ;
+              rdfs:range xsd:integer .
+
 
 ###  http://www.semanticweb.org/patient-observations#deepMinutes
 pob:deepMinutes rdf:type owl:DatatypeProperty ;
@@ -42,6 +103,16 @@ pob:deepMinutes rdf:type owl:DatatypeProperty ;
 ###  http://www.semanticweb.org/patient-observations#endTime
 pob:endTime rdf:type owl:DatatypeProperty ;
             rdfs:range xsd:dateTime .
+
+
+###  http://www.semanticweb.org/patient-observations#heartRate
+pob:heartRate rdf:type owl:DatatypeProperty ;
+              rdfs:range xsd:integer .
+
+
+###  http://www.semanticweb.org/patient-observations#lightCount
+pob:lightCount rdf:type owl:DatatypeProperty ;
+               rdfs:range xsd:integer .
 
 
 ###  http://www.semanticweb.org/patient-observations#lightMinutes
@@ -59,9 +130,24 @@ pob:minutesAwake rdf:type owl:DatatypeProperty ;
                  rdfs:range xsd:integer .
 
 
+###  http://www.semanticweb.org/patient-observations#numOfSteps
+pob:numOfSteps rdf:type owl:DatatypeProperty ;
+               rdfs:range xsd:integer .
+
+
+###  http://www.semanticweb.org/patient-observations#remCount
+pob:remCount rdf:type owl:DatatypeProperty ;
+             rdfs:range xsd:integer .
+
+
 ###  http://www.semanticweb.org/patient-observations#remMinutes
 pob:remMinutes rdf:type owl:DatatypeProperty ;
                rdfs:range xsd:integer .
+
+
+###  http://www.semanticweb.org/patient-observations#restlessMinutes
+pob:restlessMinutes rdf:type owl:DatatypeProperty ;
+                    rdfs:range xsd:integer .
 
 
 ###  http://www.semanticweb.org/patient-observations#startTime
@@ -69,13 +155,77 @@ pob:startTime rdf:type owl:DatatypeProperty ;
               rdfs:range xsd:dateTime .
 
 
+###  http://www.semanticweb.org/patient-observations#wakeCount
+pob:wakeCount rdf:type owl:DatatypeProperty ;
+              rdfs:range xsd:integer .
+
+
+###  http://www.semanticweb.org/patient-observations#wakeMinutes
+pob:wakeMinutes rdf:type owl:DatatypeProperty ;
+                rdfs:range xsd:integer .
+
+
 #################################################################
 #    Classes
 #################################################################
 
+###  http://www.semanticweb.org/patient-observations#HealthProblem
+pob:HealthProblem rdf:type owl:Class .
+
+
+###  http://www.semanticweb.org/patient-observations#HeartRateProblem
+pob:HeartRateProblem rdf:type owl:Class ;
+                     rdfs:subClassOf pob:HealthProblem .
+
+
 ###  http://www.semanticweb.org/patient-observations#HeartRateProperty
 pob:HeartRateProperty rdf:type owl:Class ;
                       rdfs:subClassOf sosa:ObservableProperty .
+
+
+###  http://www.semanticweb.org/patient-observations#Inactivity
+pob:Inactivity rdf:type owl:Class ;
+               rdfs:subClassOf pob:MovementProblem .
+
+
+###  http://www.semanticweb.org/patient-observations#IncreasedNapping
+pob:IncreasedNapping rdf:type owl:Class ;
+                     rdfs:subClassOf pob:SleepProblem .
+
+
+###  http://www.semanticweb.org/patient-observations#Insomnia
+pob:Insomnia rdf:type owl:Class ;
+             rdfs:subClassOf pob:SleepProblem .
+
+
+###  http://www.semanticweb.org/patient-observations#LackOfExercise
+pob:LackOfExercise rdf:type owl:Class ;
+                   rdfs:subClassOf pob:MovementProblem .
+
+
+###  http://www.semanticweb.org/patient-observations#LackOfMovement
+pob:LackOfMovement rdf:type owl:Class ;
+                   rdfs:subClassOf pob:MovementProblem .
+
+
+###  http://www.semanticweb.org/patient-observations#LackOfSleep
+pob:LackOfSleep rdf:type owl:Class ;
+                rdfs:subClassOf pob:SleepProblem .
+
+
+###  http://www.semanticweb.org/patient-observations#LowHeartRate
+pob:LowHeartRate rdf:type owl:Class ;
+                 rdfs:subClassOf pob:HeartRateProblem .
+
+
+###  http://www.semanticweb.org/patient-observations#LowSleepQuality
+pob:LowSleepQuality rdf:type owl:Class ;
+                    rdfs:subClassOf pob:SleepProblem .
+
+
+###  http://www.semanticweb.org/patient-observations#MovementProblem
+pob:MovementProblem rdf:type owl:Class ;
+                    rdfs:subClassOf pob:HealthProblem .
 
 
 ###  http://www.semanticweb.org/patient-observations#Patient
@@ -85,6 +235,11 @@ pob:Patient rdf:type owl:Class ;
 
 ###  http://www.semanticweb.org/patient-observations#Person
 pob:Person rdf:type owl:Class .
+
+
+###  http://www.semanticweb.org/patient-observations#SleepProblem
+pob:SleepProblem rdf:type owl:Class ;
+                 rdfs:subClassOf pob:HealthProblem .
 
 
 ###  http://www.semanticweb.org/patient-observations#SleepProperty
@@ -97,19 +252,30 @@ pob:StepProperty rdf:type owl:Class ;
                  rdfs:subClassOf sosa:ObservableProperty .
 
 
+###  http://www.semanticweb.org/patient-observations#StressOrPain
+pob:StressOrPain rdf:type owl:Class ;
+                 rdfs:subClassOf pob:HeartRateProblem .
+
+
+###  http://www.semanticweb.org/patient-observations#TooMuchSleep
+pob:TooMuchSleep rdf:type owl:Class ;
+                 rdfs:subClassOf pob:SleepProblem .
+
+
 #################################################################
 #    Individuals
 #################################################################
 
-###  http://www.semanticweb.org/patient-observations#TMS6
-pob:TMS6 rdf:type owl:NamedIndividual ,
-                  pob:Patient .
+###  http://www.semanticweb.org/patient-observations#LackOfEx1
+pob:LackOfEx1 rdf:type owl:NamedIndividual ,
+                       pob:LackOfExercise ;
+              pob:startTime "2021-04-01T00:00:00+00:00"^^xsd:dateTime .
 
 
 ###  http://www.semanticweb.org/patient-observations#ob1
 pob:ob1 rdf:type owl:NamedIndividual ,
                  sosa:Observation ;
-        pob:isObservationFor pob:TMS6 ;
+        pob:isObservationFor pob:patient1 ;
         sosa:observedProperty pob:sleepProperty1 ;
         pob:deepMinutes 60 ;
         pob:endTime "2021-04-01T23:59:59+00:00"^^xsd:dateTime ;
@@ -120,9 +286,21 @@ pob:ob1 rdf:type owl:NamedIndividual ,
         pob:startTime "2021-04-01T00:00:00+00:00"^^xsd:dateTime .
 
 
+###  http://www.semanticweb.org/patient-observations#patient1
+pob:patient1 rdf:type owl:NamedIndividual ,
+                      pob:Patient ;
+             pob:hasHeartRateProblem pob:stress1 ;
+             pob:hasMovementProblem pob:LackOfEx1 .
+
+
 ###  http://www.semanticweb.org/patient-observations#sleepProperty1
 pob:sleepProperty1 rdf:type owl:NamedIndividual ,
                             pob:SleepProperty .
+
+
+###  http://www.semanticweb.org/patient-observations#stress1
+pob:stress1 rdf:type owl:NamedIndividual ,
+                     pob:StressOrPain .
 
 
 ###  Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi
