@@ -1,19 +1,27 @@
+import org.eclipse.rdf4j.exceptions.ValidationException;
 import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.impl.TreeModel;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDF4J;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.manager.RemoteRepositoryManager;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.rio.*;
 import org.eclipse.rdf4j.rio.helpers.BasicParserSettings;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
+import org.eclipse.rdf4j.sail.shacl.ShaclSail;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -65,15 +73,15 @@ public class RepositoryHandler {
         con = repo.getConnection();
     }
 
-    static void addSleepData(long[][] sleepData, String[] timeseries, String patientName){
+    static void addSleepData(long[][] sleepData, String[] timeseries, String patientName) throws IOException {
         con.begin();
         Model model = new TreeModel();
         ValueFactory factory = SimpleValueFactory.getInstance();
         for (int i=0; i<sleepData.length; i++){
             IRI observationName = iri(ONTOLOGY_URI+"observation"+ timeseries[i] +"_for_"+ patientName);
             IRI observableProperty = iri(ONTOLOGY_URI+"sleepProp");
-            Literal startTime = literal(timeseries[i]+"T00:00:00+00:00");
-            Literal endTime = literal(timeseries[i]+"T23:59:59+00:00");
+            Literal startTime = factory.createLiteral(timeseries[i]+"T00:00:00+00:00", XSD.DATETIME);
+            Literal endTime = factory.createLiteral(timeseries[i]+"T23:59:59+00:00", XSD.DATETIME);
             IRI patient = iri(ONTOLOGY_URI+patientName);
             model.add(observationName, RDF.TYPE, iri(OBSERVATION));
             model.add(observationName, iri(OBSERVED_PROPERTY), observableProperty);
@@ -96,8 +104,83 @@ public class RepositoryHandler {
             model.add(observationName, iri(END_TIME), endTime);
 
         }
+//        sleepDataValidation(model);
         con.add(model);
         con.commit();
+    }
+
+    private static void sleepDataValidation(Model model) throws IOException {
+        ShaclSail shaclSail = new ShaclSail(new MemoryStore());
+
+        //Logger root = (Logger) LoggerFactory.getLogger(ShaclSail.class.getName());
+        //root.setLevel(Level.INFO);
+
+        //shaclSail.setLogValidationPlans(true);
+        //shaclSail.setGlobalLogValidationExecution(true);
+        //shaclSail.setLogValidationViolations(true);
+
+        SailRepository sailRepository = new SailRepository(shaclSail);
+        sailRepository.init();
+
+        try (SailRepositoryConnection connection = sailRepository.getConnection()) {
+            connection.begin();
+            connection.add(model);
+
+            StringReader shaclRules = new StringReader(
+                    String.join("\n", "",
+                            "@prefix sh: <http://www.w3.org/ns/shacl#> .",
+                            "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .",
+                            "@prefix pob:<http://www.semanticweb.org/patient-observations#> .",
+                            "@prefix sosa: <http://www.w3.org/ns/sosa/> .",
+                            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .",
+                            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .",
+
+                            "pob:PersonShape",
+                            "  a sh:NodeShape  ;",
+                            "  sh:targetClass foaf:Person ;",
+                            "  sh:property pob:PersonShapeProperty .",
+
+                            "pob:PersonShapeProperty ",
+                            "  sh:path foaf:age ;",
+                            "  sh:datatype xsd:int ;",
+                            "  sh:maxCount 1 ;",
+                            "  sh:minCount 1 ."
+                    ));
+
+            connection.add(shaclRules, "", RDFFormat.TURTLE, RDF4J.SHACL_SHAPE_GRAPH);
+            connection.commit();
+
+            connection.begin();
+
+            StringReader invalidSampleData = new StringReader(
+                    String.join("\n", "",
+                            "@prefix sh: <http://www.w3.org/ns/shacl#> .",
+                            "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .",
+                            "@prefix pob:<http://www.semanticweb.org/patient-observations#> .",
+                            "@prefix sosa: <http://www.w3.org/ns/sosa/> .",
+                            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .",
+                            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .",
+
+
+                            "pob:peter a foaf:Patient ;",
+                            "  pob:hasMovementProblem 20, '30'^^xsd:int  ."
+
+                    ));
+
+            connection.add(invalidSampleData, "", RDFFormat.TURTLE);
+            try {
+                connection.commit();
+                connection.close();
+            } catch (RepositoryException exception) {
+                Throwable cause = exception.getCause();
+                if (cause instanceof ValidationException) {
+                    Model validationReportModel = ((ValidationException) cause).validationReportAsModel();
+
+                    Rio.write(validationReportModel, System.out, RDFFormat.TURTLE);
+                }
+                throw exception;
+            }
+        }
     }
 
     static void getSleepStatements(){
