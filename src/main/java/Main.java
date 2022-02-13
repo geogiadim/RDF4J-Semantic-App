@@ -14,9 +14,20 @@ public class Main {
         RepositoryHandler.initRepo();
 
         InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS6);
-        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+//        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
         InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS7);
-        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+//        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+
+        InputFileHandler.HeartRateJsonReader(PATH_TO_HR_TMS6);
+//        RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+        InputFileHandler.HeartRateJsonReader(PATH_TO_HR_TMS7);
+//        RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+
+        InputFileHandler.StepsJsonReader(PATH_TO_STEPS_TMS6);
+        RepositoryHandler.addStepsData(InputFileHandler.getStepsData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+
+        InputFileHandler.StepsJsonReader(PATH_TO_STEPS_TMS7);
+
 
         RepositoryHandler.closeConn();
     }

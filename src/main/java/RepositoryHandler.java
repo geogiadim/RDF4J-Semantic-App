@@ -39,29 +39,37 @@ public class RepositoryHandler {
     private static RepositoryConnection con;
     private static final String ONTOLOGY_URI = "http://www.semanticweb.org/patient-observations#";
     // sleep properties
-    private static final String REM_MINUTES = "http://www.semanticweb.org/patient-observations#remMinutes";
-    private static final String LIGHT_MINUTES = "http://www.semanticweb.org/patient-observations#lightMinutes";
-    private static final String DEEP_MINUTES = "http://www.semanticweb.org/patient-observations#deepMinutes";
-    private static final String WAKE_MINUTES = "http://www.semanticweb.org/patient-observations#wakeMinutes";
-    private static final String ASLEEP_MINUTES = "http://www.semanticweb.org/patient-observations#asleepMinutes";
-    private static final String RESTLESS_MINUTES = "http://www.semanticweb.org/patient-observations#restlessMinutes";
-    private static final String AWAKE_MINUTES = "http://www.semanticweb.org/patient-observations#awakeMinutes";
-    private static final String MINUTES_AWAKE = "http://www.semanticweb.org/patient-observations#minutesAwake";
-    private static final String MINUTES_ASLEEP = "http://www.semanticweb.org/patient-observations#minutesAsleep";
-    private static final String WAKE_COUNT = "http://www.semanticweb.org/patient-observations#wakeCount";
-    private static final String LIGHT_COUNT = "http://www.semanticweb.org/patient-observations#lghtCount";
-    private static final String REM_COUNT = "http://www.semanticweb.org/patient-observations#remCount";
-    private static final String DEEP_COUNT = "http://www.semanticweb.org/patient-observations#deepCount";
+    private static final String REM_MINUTES = ONTOLOGY_URI+"remMinutes";
+    private static final String LIGHT_MINUTES = ONTOLOGY_URI+"lightMinutes";
+    private static final String DEEP_MINUTES = ONTOLOGY_URI+"deepMinutes";
+    private static final String WAKE_MINUTES = ONTOLOGY_URI+"wakeMinutes";
+    private static final String ASLEEP_MINUTES = ONTOLOGY_URI+"asleepMinutes";
+    private static final String RESTLESS_MINUTES = ONTOLOGY_URI+"restlessMinutes";
+    private static final String AWAKE_MINUTES = ONTOLOGY_URI+"awakeMinutes";
+    private static final String MINUTES_AWAKE = ONTOLOGY_URI+"minutesAwake";
+    private static final String MINUTES_ASLEEP = ONTOLOGY_URI+"minutesAsleep";
+    private static final String WAKE_COUNT = ONTOLOGY_URI+"wakeCount";
+    private static final String LIGHT_COUNT = ONTOLOGY_URI+"lghtCount";
+    private static final String REM_COUNT = ONTOLOGY_URI+"remCount";
+    private static final String DEEP_COUNT = ONTOLOGY_URI+"deepCount";
+    // heart rate property and step property
+    private static final String HEART_RATE = ONTOLOGY_URI+"heartRate";
+    private static final String NUM_OF_STEPS = ONTOLOGY_URI+"numOfSteps";
 
     private static final String OBSERVED_PROPERTY = "http://www.w3.org/ns/sosa/observedProperty";
-    private static final String IS_OBS_FOR = "http://www.semanticweb.org/patient-observations#isObservationFor";
+    private static final String IS_OBS_FOR = ONTOLOGY_URI+"isObservationFor";
+
     // time properties
-    private static final String START_TIME = "http://www.semanticweb.org/patient-observations#startTime";
-    private static final String END_TIME = "http://www.semanticweb.org/patient-observations#endTime";
+    private static final String START_TIME = ONTOLOGY_URI+"startTime";
+    private static final String END_TIME = ONTOLOGY_URI+"endTime";
+    private static final String RESULT_TIME = "http://www.w3.org/ns/sosa/resultTime";
+
     // classes
     private static final String OBSERVATION = "http://www.w3.org/ns/sosa/Observation";
-    private static final String SLEEP_PROPERTY = "http://www.semanticweb.org/patient-observations#SleepProperty";
-    private static final String PERSON = "http://www.semanticweb.org/patient-observations#Person";
+    private static final String SLEEP_PROPERTY = ONTOLOGY_URI+"SleepProperty";
+    private static final String HEART_RATE_PROPERTY = ONTOLOGY_URI+"HeartRateProperty";
+    private static final String STEP_PROPERTY = ONTOLOGY_URI+"StepProperty";
+    private static final String PERSON = ONTOLOGY_URI+"Person";
 
     static void initRepo(){
         // initiate a remote repo manager
@@ -108,6 +116,52 @@ public class RepositoryHandler {
         con.add(model);
         con.commit();
     }
+
+    static void addHeartRateData(long[] heartRateData, String[] timeseries, String patientName) throws IOException {
+        con.begin();
+        Model model = new TreeModel();
+        ValueFactory factory = SimpleValueFactory.getInstance();
+        for (int i=0; i<heartRateData.length; i++){
+            IRI observationName = iri(ONTOLOGY_URI+"observation"+ timeseries[i] +"_for_"+ patientName);
+            IRI observableProperty = iri(ONTOLOGY_URI+"heartRateProp");
+            Literal resultTime = factory.createLiteral(timeseries[i], XSD.DATETIME);
+            IRI patient = iri(ONTOLOGY_URI+patientName);
+            model.add(observationName, RDF.TYPE, iri(OBSERVATION));
+            model.add(observationName, iri(OBSERVED_PROPERTY), observableProperty);
+            model.add(observableProperty, RDF.TYPE, iri(HEART_RATE_PROPERTY));
+            model.add(observationName, iri(IS_OBS_FOR), patient);
+            model.add(observationName, iri(HEART_RATE), literal(heartRateData[i]));
+            model.add(observationName, iri(RESULT_TIME), resultTime);
+
+        }
+//        sleepDataValidation(model);
+        con.add(model);
+        con.commit();
+    }
+
+    static void addStepsData(long[] stepsData, String[] timeseries, String patientName) throws IOException {
+        con.begin();
+        Model model = new TreeModel();
+        ValueFactory factory = SimpleValueFactory.getInstance();
+        for (int i=0; i<stepsData.length; i++){
+            IRI observationName = iri(ONTOLOGY_URI+"observation"+ timeseries[i] +"_for_"+ patientName);
+            IRI observableProperty = iri(ONTOLOGY_URI+"stepProp");
+            Literal resultTime = factory.createLiteral(timeseries[i], XSD.DATETIME);
+            IRI patient = iri(ONTOLOGY_URI+patientName);
+            model.add(observationName, RDF.TYPE, iri(OBSERVATION));
+            model.add(observationName, iri(OBSERVED_PROPERTY), observableProperty);
+            model.add(observableProperty, RDF.TYPE, iri(HEART_RATE_PROPERTY));
+            model.add(observationName, iri(IS_OBS_FOR), patient);
+            model.add(observationName, iri(NUM_OF_STEPS), literal(stepsData[i]));
+            model.add(observationName, iri(RESULT_TIME), resultTime);
+
+        }
+//        sleepDataValidation(model);
+        con.add(model);
+        con.commit();
+    }
+
+
 
     private static void sleepDataValidation(Model model) throws IOException {
         ShaclSail shaclSail = new ShaclSail(new MemoryStore());

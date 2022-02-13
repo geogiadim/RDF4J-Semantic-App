@@ -2,7 +2,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -10,7 +9,60 @@ public class InputFileHandler {
     private static String[] timeseriesArray;
     private static final int NUM_OF_SLEEP_DATA_FIELDS = 13;
     private static long[][] sleepData;
+    private static long[] heartRateData;
+    private static long[] stepsData;
     private static String patient;
+
+    public static void StepsJsonReader(String pathToFile) throws IOException, ParseException {
+        // initialize a jason parser
+        JSONParser jsonParser = new JSONParser();
+        // initialize a file reader with hardcoded file path
+        FileReader reader  = new FileReader(pathToFile);
+        // create object that parses all json data
+        Object obj = jsonParser.parse(reader);
+        // cast obj as JSONObject
+        JSONObject jsonObj = (JSONObject) obj;
+
+        patient = (String) jsonObj.get("patient");
+        // insert data in JSONArray
+        JSONArray dataArray = (JSONArray)jsonObj.get("data");
+        stepsData = new long[dataArray.size()];
+        timeseriesArray = new String[dataArray.size()];
+        int i = 0;
+        for (Object o : dataArray) {
+            JSONObject dataRow = (JSONObject) o;
+            stepsData[i] = (long) dataRow.get("fields.rate");
+            timeseriesArray[i] = (String) dataRow.get("fields.created_at");
+            i++;
+        }
+//        printStepsData();
+    }
+
+
+    public static void HeartRateJsonReader(String pathToFile) throws IOException, ParseException {
+        // initialize a jason parser
+        JSONParser jsonParser = new JSONParser();
+        // initialize a file reader with hardcoded file path
+        FileReader reader  = new FileReader(pathToFile);
+        // create object that parses all json data
+        Object obj = jsonParser.parse(reader);
+        // cast obj as JSONObject
+        JSONObject jsonObj = (JSONObject) obj;
+
+        patient = (String) jsonObj.get("patient");
+        // insert data in JSONArray
+        JSONArray dataArray = (JSONArray)jsonObj.get("data");
+        heartRateData = new long[dataArray.size()];
+        timeseriesArray = new String[dataArray.size()];
+        int i = 0;
+        for (Object o : dataArray) {
+            JSONObject dataRow = (JSONObject) o;
+            heartRateData[i] = (long) dataRow.get("fields.resting_hr");
+            timeseriesArray[i] = (String) dataRow.get("fields.created_at");
+            i++;
+        }
+//        printHeartRateData();
+    }
 
     public static void SleepDataJsonReader(String pathToFile) throws IOException, ParseException {
         // initialize a jason parser
@@ -48,7 +100,7 @@ public class InputFileHandler {
             timeseriesArray[i] = (String) dataRow.get("timeseries");
             i++;
         }
-        printSleepData();
+//        printSleepData();
     }
 
     private static void printSleepData(){
@@ -61,8 +113,23 @@ public class InputFileHandler {
         }
     }
 
+    private static void printHeartRateData(){
+        System.out.println(patient);
+        for (int k=0; k<timeseriesArray.length;k++){
+            System.out.println(heartRateData[k] + ", " + timeseriesArray[k]);
+        }
+    }
+
+    private static void printStepsData(){
+        System.out.println(patient);
+        for (int k=0; k<timeseriesArray.length;k++){
+            System.out.println(stepsData[k] + ", " + timeseriesArray[k]);
+        }
+    }
+
     public static long[][] getSleepData() { return sleepData; }
+    public static long[] getStepsData() {return stepsData;}
     public static String[] getTimeseriesArray() { return timeseriesArray; }
     public static String getPatient() { return patient; }
-
+    public static long[] getHeartRateData() {return heartRateData;}
 }
