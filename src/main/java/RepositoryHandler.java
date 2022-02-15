@@ -59,11 +59,10 @@ public class RepositoryHandler {
     // heart rate property and step property
     private static final String HEART_RATE = ONTOLOGY_URI+"heartRate";
     private static final String NUM_OF_STEPS = ONTOLOGY_URI+"numOfSteps";
-
+    private static final String RATE = ONTOLOGY_URI+"rate";
+    // object properties
     private static final String OBSERVED_PROPERTY = "http://www.w3.org/ns/sosa/observedProperty";
     private static final String IS_OBS_FOR = ONTOLOGY_URI+"isObservationFor";
-
-    //
     private static final String REFERS_TO_PATIENT = ONTOLOGY_URI+"refersToPatient";
 
     // time properties
@@ -78,6 +77,7 @@ public class RepositoryHandler {
     private static final String STEP_PROPERTY = ONTOLOGY_URI+"StepProperty";
     private static final String PATIENT = ONTOLOGY_URI+"Patient";
     private static final String DAILY_STEPS_MES = ONTOLOGY_URI+"DailyStepsMeasurement";
+    private static final String DAILY_HR_MES = ONTOLOGY_URI+"DailyHeartRateMeasurement";
 
     static void initRepo(){
         // initiate a remote repo manager
@@ -91,98 +91,10 @@ public class RepositoryHandler {
     }
 
     static void executeRules(){
-        createDailyStepsMeasurements();
         lackOfMovementRule();
     }
 
-    static void createDailyStepsMeasurements(){
-        con.begin();
-        Model model = new TreeModel();
-        for (int month=1; month<10;month++){
-            for(int day=1; day<10;day++){
-                String queryString = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
-                        "PREFIX pob1: <http://www.semanticweb.org/patient-observations/1.0.0#> \n" +
-                        "PREFIX pob:<http://www.semanticweb.org/patient-observations#>\n" +
-                        "PREFIX sosa: <http://www.w3.org/ns/sosa/> \n" +
-                        "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
-                        "PREFIX xml: <http://www.w3.org/XML/1998/namespace> \n" +
-                        "\n" +
-                        "SELECT (SUM(?steps) AS ?totalSteps) ?patient\n" +
-                        "WHERE{\n" +
-                        "    ?obs a sosa:Observation;\n" +
-                        "         sosa:observedProperty ?obProp;\n" +
-                        "         pob:isObservationFor ?patient;\n" +
-                        "         sosa:resultTime ?resultTime;\n" +
-                        "         pob:numOfSteps ?steps .\n" +
-                        "        \n" +
-                        "    ?obProp a pob:StepProperty .\n" +
-                        "    \n" +
-                        "    FILTER (?resultTime > \"2021-0"+month+"-0"+day+"T00:00:00Z\"^^xsd:dateTime )\n" +
-                        "    FILTER (?resultTime < \"2021-0"+month+"-0"+day+"T23:59:59Z\"^^xsd:dateTime )\n" +
-                        "}\n" +
-                        "GROUP BY ?patient\n" +
-                        "\n ";
-//                if (month<10){
-//                    queryString+= "FILTER (?resultTime > \"2021-0"+month;
-//                    if (day<10){
-//                        queryString+="-0"+day+"T00:00:00Z\"^^xsd:dateTime )\n" +
-//                                "FILTER (?resultTime < \"2021-0"+month+"-0"+day+"T23:59:59Z\"^^xsd:dateTime )\n" +
-//                                "}\n" +
-//                                "GROUP BY ?patient\n" +
-//                                "\n ";
-//                    }else if (day>10){
-//                        queryString+="-"+day+"T00:00:00Z\"^^xsd:dateTime )\n" +
-//                                "FILTER (?resultTime < \"2021-"+month+"-"+day+"T23:59:59Z\"^^xsd:dateTime )\n" +
-//                                "}\n" +
-//                                "GROUP BY ?patient\n" +
-//                                "\n ";
-//                    }
-//
-//                }else if (month>10){
-//                    queryString+= "FILTER (?resultTime > \"2021-"+month;
-//                    if (day<10){
-//                        queryString+="-0"+day+"T00:00:00Z\"^^xsd:dateTime )\n" +
-//                                "FILTER (?resultTime < \"2021-"+month+"-0"+day+"T23:59:59Z\"^^xsd:dateTime )\n" +
-//                                "}\n" +
-//                                "GROUP BY ?patient\n" +
-//                                "\n ";
-//                    }else if (day>10){
-//                        queryString+="-"+day+"T00:00:00Z\"^^xsd:dateTime )\n" +
-//                                "FILTER (?resultTime < \"2021-"+month+"-"+day+"T23:59:59Z\"^^xsd:dateTime )\n" +
-//                                "}\n" +
-//                                "GROUP BY ?patient\n" +
-//                                "\n ";
-//                    }
-//                }
 
-                TupleQuery tupleQuery = con.prepareTupleQuery(queryString);
-                List<BindingSet> resultList;
-                try (TupleQueryResult result = tupleQuery.evaluate()) {
-                    int id = 0;
-                    resultList = QueryResults.asList(result);
-                    System.out.println(resultList);
-//                    while (result.hasNext()) {  // iterate over the result
-//                        BindingSet bindingSet = result.next();
-//                        Value totalSteps = bindingSet.getValue("totalSteps");
-//                        Value patient = bindingSet.getValue("patient");
-//
-//
-////                    System.out.println(totalSteps +", "+ patient);
-//                        IRI dailyStepsMes = iri(DAILY_STEPS_MES+"_"+id);
-//                        model.add(dailyStepsMes, RDF.TYPE, iri(DAILY_STEPS_MES));
-//                        model.add(dailyStepsMes, iri(REFERS_TO_PATIENT), iri(patient.toString()));
-//                        model.add(dailyStepsMes,iri(NUM_OF_STEPS), literal(totalSteps.toString()));
-//                        model.add(dailyStepsMes, iri(RESULT_TIME), literal("2021-"+month+"-"+day+"T00:00:00Z", XSD.DATETIME));
-//                        id++;
-//                    }
-                }
-            }
-        }
-        con.add(model);
-        con.commit();
-
-    }
     static void lackOfMovementRule(){
 
     }
@@ -218,7 +130,6 @@ public class RepositoryHandler {
             model.add(observationName, iri(END_TIME), endTime);
 
         }
-//        sleepDataValidation(model);
         con.add(model);
         con.commit();
     }
@@ -236,11 +147,10 @@ public class RepositoryHandler {
             model.add(observationName, iri(OBSERVED_PROPERTY), observableProperty);
             model.add(observableProperty, RDF.TYPE, iri(HEART_RATE_PROPERTY));
             model.add(observationName, iri(IS_OBS_FOR), patient);
-            model.add(observationName, iri(HEART_RATE), literal(heartRateData[i]));
+            model.add(observationName, iri(RATE), literal(heartRateData[i]));
             model.add(observationName, iri(RESULT_TIME), resultTime);
 
         }
-//        sleepDataValidation(model);
         con.add(model);
         con.commit();
     }
@@ -258,118 +168,58 @@ public class RepositoryHandler {
             model.add(observationName, iri(OBSERVED_PROPERTY), observableProperty);
             model.add(observableProperty, RDF.TYPE, iri(STEP_PROPERTY));
             model.add(observationName, iri(IS_OBS_FOR), patient);
-            model.add(observationName, iri(NUM_OF_STEPS), literal(stepsData[i]));
+            model.add(observationName, iri(RATE), literal(stepsData[i]));
             model.add(observationName, iri(RESULT_TIME), resultTime);
 
         }
-//        sleepDataValidation(model);
+        con.add(model);
+        con.commit();
+    }
+
+    static void addDailyHRMeasurements(ArrayList<Double> dailyMeasurements, ArrayList<String> timeseries, String patientName){
+        con.begin();
+        Model model = new TreeModel();
+        ValueFactory factory = SimpleValueFactory.getInstance();
+        IRI patient = iri(ONTOLOGY_URI+patientName);
+        for (int i=0; i<dailyMeasurements.toArray().length; i++){
+            IRI dailyHrMeasurement = iri(DAILY_HR_MES+"_"+timeseries.get(i)+"_"+patientName);
+            model.add(dailyHrMeasurement, RDF.TYPE, iri(DAILY_HR_MES));
+            model.add(dailyHrMeasurement, iri(REFERS_TO_PATIENT), patient);
+            model.add(dailyHrMeasurement, iri(RESULT_TIME), factory.createLiteral(timeseries.get(i), XSD.DATETIME));
+            model.add(dailyHrMeasurement, iri(RATE), factory.createLiteral(String.valueOf(dailyMeasurements.get(i)), XSD.DOUBLE));
+        }
         con.add(model);
         con.commit();
     }
 
 
+//    static void getSleepStatements(){
+//        try (RepositoryResult<Statement> statements = con.getStatements(null, RDF.TYPE, iri(PATIENT), true)) {
+//            while (statements.hasNext()) {
+//                Statement st = statements.next();
+//                RepositoryResult<Statement> statements2 = con.getStatements(null, iri(IS_OBS_FOR),st.getSubject());
+//                while(statements2.hasNext()){
+//                    Statement observation = statements2.next();
+//                    System.out.println("Observation: "+ observation.getSubject());
+//                }
+//            }
+//        }
+//    }
 
-    private static void sleepDataValidation(Model model) throws IOException {
-        ShaclSail shaclSail = new ShaclSail(new MemoryStore());
-
-        //Logger root = (Logger) LoggerFactory.getLogger(ShaclSail.class.getName());
-        //root.setLevel(Level.INFO);
-
-        //shaclSail.setLogValidationPlans(true);
-        //shaclSail.setGlobalLogValidationExecution(true);
-        //shaclSail.setLogValidationViolations(true);
-
-        SailRepository sailRepository = new SailRepository(shaclSail);
-        sailRepository.init();
-
-        try (SailRepositoryConnection connection = sailRepository.getConnection()) {
-            connection.begin();
-            connection.add(model);
-
-            StringReader shaclRules = new StringReader(
-                    String.join("\n", "",
-                            "@prefix sh: <http://www.w3.org/ns/shacl#> .",
-                            "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .",
-                            "@prefix pob:<http://www.semanticweb.org/patient-observations#> .",
-                            "@prefix sosa: <http://www.w3.org/ns/sosa/> .",
-                            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .",
-                            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .",
-
-                            "pob:PersonShape",
-                            "  a sh:NodeShape  ;",
-                            "  sh:targetClass foaf:Person ;",
-                            "  sh:property pob:PersonShapeProperty .",
-
-                            "pob:PersonShapeProperty ",
-                            "  sh:path foaf:age ;",
-                            "  sh:datatype xsd:int ;",
-                            "  sh:maxCount 1 ;",
-                            "  sh:minCount 1 ."
-                    ));
-
-            connection.add(shaclRules, "", RDFFormat.TURTLE, RDF4J.SHACL_SHAPE_GRAPH);
-            connection.commit();
-
-            connection.begin();
-
-            StringReader invalidSampleData = new StringReader(
-                    String.join("\n", "",
-                            "@prefix sh: <http://www.w3.org/ns/shacl#> .",
-                            "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .",
-                            "@prefix pob:<http://www.semanticweb.org/patient-observations#> .",
-                            "@prefix sosa: <http://www.w3.org/ns/sosa/> .",
-                            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .",
-                            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .",
-
-
-                            "pob:peter a foaf:Patient ;",
-                            "  pob:hasMovementProblem 20, '30'^^xsd:int  ."
-
-                    ));
-
-            connection.add(invalidSampleData, "", RDFFormat.TURTLE);
-            try {
-                connection.commit();
-                connection.close();
-            } catch (RepositoryException exception) {
-                Throwable cause = exception.getCause();
-                if (cause instanceof ValidationException) {
-                    Model validationReportModel = ((ValidationException) cause).validationReportAsModel();
-
-                    Rio.write(validationReportModel, System.out, RDFFormat.TURTLE);
-                }
-                throw exception;
-            }
-        }
-    }
-
-    static void getSleepStatements(){
-        try (RepositoryResult<Statement> statements = con.getStatements(null, RDF.TYPE, iri(PATIENT), true)) {
-            while (statements.hasNext()) {
-                Statement st = statements.next();
-                RepositoryResult<Statement> statements2 = con.getStatements(null, iri(IS_OBS_FOR),st.getSubject());
-                while(statements2.hasNext()){
-                    Statement observation = statements2.next();
-                    System.out.println("Observation: "+ observation.getSubject());
-                }
-            }
-        }
-    }
-
-    static void getPatients(){
-        ArrayList<Resource> patients = new ArrayList<>();
-        try (RepositoryResult<Statement> statements = con.getStatements(null, RDF.TYPE, iri(PATIENT), true)) {
-            while (statements.hasNext()) {
-                Statement st = statements.next();
-                System.out.println("Patient: "+st.getSubject());
-                patients.add(st.getSubject());
-            }
-        }
-
-        for (Resource p : patients){
-            System.out.println(p);
-        }
-    }
+//    static void getPatients(){
+//        ArrayList<Resource> patients = new ArrayList<>();
+//        try (RepositoryResult<Statement> statements = con.getStatements(null, RDF.TYPE, iri(PATIENT), true)) {
+//            while (statements.hasNext()) {
+//                Statement st = statements.next();
+//                System.out.println("Patient: "+st.getSubject());
+//                patients.add(st.getSubject());
+//            }
+//        }
+//
+//        for (Resource p : patients){
+//            System.out.println(p);
+//        }
+//    }
 
 //    static void getAllStatements() throws IOException {
 //        try (RepositoryResult<Statement> statements = con.getStatements(null, null, null, true)) {
@@ -399,7 +249,7 @@ public class RepositoryHandler {
 //            }
 //            writer.endRDF();
 //        } catch (RDFHandlerException e) {
-//            // oh no, do something!
+//            e.printStackTrace();
 //        }
 //    }
 
