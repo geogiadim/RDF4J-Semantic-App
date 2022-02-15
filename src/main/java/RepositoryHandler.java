@@ -6,10 +6,7 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDF4J;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
-import org.eclipse.rdf4j.query.BindingSet;
-import org.eclipse.rdf4j.query.QueryResults;
-import org.eclipse.rdf4j.query.TupleQuery;
-import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.*;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
@@ -26,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -91,12 +89,84 @@ public class RepositoryHandler {
     }
 
     static void executeRules(){
-        lackOfMovementRule();
+        generateLowHRRule();
     }
 
+    static void wipeLowHRRule() {}
 
-    static void lackOfMovementRule(){
 
+    static void generateLowHRRule(){
+        ArrayList<Value> patients = new ArrayList<>();
+        ArrayList<Value> dates = new ArrayList<>();
+        ArrayList<Value> rates = new ArrayList<>();
+        String queryString = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+                "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
+                "PREFIX pob1: <http://www.semanticweb.org/patient-observations/1.0.0#> \n" +
+                "PREFIX pob:<http://www.semanticweb.org/patient-observations#>\n" +
+                "PREFIX sosa: <http://www.w3.org/ns/sosa/> \n" +
+                "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
+                "PREFIX xml: <http://www.w3.org/XML/1998/namespace> \n" +
+                "\n" +
+                "SELECT *\n" +
+                "WHERE{\n" +
+                "    ?dailyMeasurement a pob:DailyHeartRateMeasurement;\n" +
+                "                      pob:refersToPatient ?patient;\n" +
+                "                      sosa:resultTime ?date;\n" +
+                "                      pob:rate ?rate.\n" +
+                "    \n" +
+                "    FILTER (?rate < \"60\"^^xsd:double) .            \n" +
+                "}";
+
+        TupleQuery tupleQuery = con.prepareTupleQuery(queryString);
+        try (TupleQueryResult result = tupleQuery.evaluate()) {
+            while (result.hasNext()) {  // iterate over the result
+                BindingSet bindingSet = result.next();
+                Value valueOfX = bindingSet.getValue("patient");
+                Value valueOfY = bindingSet.getValue("date");
+                Value valueOfZ = bindingSet.getValue("rate");
+                patients.add(valueOfX);
+                dates.add(valueOfY);
+                rates.add(valueOfZ);
+            }
+        }
+        String patientName;
+        String date;
+        con.begin();
+        for (int i=0; i < patients.toArray().length; i++) {
+            patientName = patients.get(i).toString().replace(ONTOLOGY_URI, "");
+            date = dates.get(i).toString().replace("^^<http://www.w3.org/2001/XMLSchema#dateTime>", "");
+            date = date.substring(1, date.length()-1);
+            IRI problem = iri(ONTOLOGY_URI+"LowHeartRateProblem_"+ date +"_for_"+ patientName);
+            String queryString2 = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+                    "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
+                    "PREFIX pob1: <http://www.semanticweb.org/patient-observations/1.0.0#> \n" +
+                    "PREFIX pob:<http://www.semanticweb.org/patient-observations#>\n" +
+                    "PREFIX sosa: <http://www.w3.org/ns/sosa/> \n" +
+                    "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
+                    "PREFIX xml: <http://www.w3.org/XML/1998/namespace> \n" +
+                    "\n" +
+                    "CONSTRUCT{\n" +
+                    "    <"+problem+"> a pob:LowHeartRate;\n" +
+                    "                        pob:isHeartRateProblemOf <"+patients.get(i)+">;\n" +
+                    "                        sosa:resultTime "+dates.get(i)+";\n" +
+                    "                        pob:rate "+rates.get(i)+".\n" +
+                    "}\n" +
+                    "WHERE{\n" +
+                    "    ?dailyMeasurement a pob:DailyHeartRateMeasurement;\n" +
+                    "                      pob:refersToPatient <"+patients.get(i)+">;\n" +
+                    "                      sosa:resultTime "+dates.get(i)+";\n" +
+                    "                      pob:rate "+rates.get(i)+".\n" +
+                    "  \n" +
+                    "}";
+
+            GraphQueryResult graphResult = con.prepareGraphQuery(queryString2).evaluate();
+            Model resultModel = QueryResults.asModel(graphResult);
+            for (Statement st : resultModel) {
+                System.out.println(st.getSubject() + ", " + st.getPredicate() + ", " + st.getObject());
+            }
+            con.add(resultModel);
+        }
+        con.commit();
     }
 
     static void addSleepData(long[][] sleepData, String[] timeseries, String patientName) throws IOException {
@@ -206,20 +276,20 @@ public class RepositoryHandler {
 //        }
 //    }
 
-//    static void getPatients(){
-//        ArrayList<Resource> patients = new ArrayList<>();
-//        try (RepositoryResult<Statement> statements = con.getStatements(null, RDF.TYPE, iri(PATIENT), true)) {
-//            while (statements.hasNext()) {
-//                Statement st = statements.next();
-//                System.out.println("Patient: "+st.getSubject());
-//                patients.add(st.getSubject());
-//            }
-//        }
-//
-//        for (Resource p : patients){
-//            System.out.println(p);
-//        }
-//    }
+    static void getPatients(){
+        ArrayList<Resource> patients = new ArrayList<>();
+        try (RepositoryResult<Statement> statements = con.getStatements(null, RDF.TYPE, iri(PATIENT), true)) {
+            while (statements.hasNext()) {
+                Statement st = statements.next();
+                System.out.println("Patient: "+st.getSubject());
+                patients.add(st.getSubject());
+            }
+        }
+
+        for (Resource p : patients){
+            System.out.println(p);
+        }
+    }
 
 //    static void getAllStatements() throws IOException {
 //        try (RepositoryResult<Statement> statements = con.getStatements(null, null, null, true)) {
