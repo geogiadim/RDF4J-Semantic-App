@@ -33,7 +33,7 @@ import static org.eclipse.rdf4j.model.util.Values.literal;
 
 public class RepositoryHandler {
     // URL of the remote RDF4J Server we want to access
-    private static final String SERVER_URL = "http://localhost:7200/";
+    private static final String SERVER_URL = "http://localhost:80/";
     // ID of repository we want to access
     private static final String REPO_ID = "rdf4j-repo";
     private static RemoteRepositoryManager manager;

@@ -18,7 +18,7 @@ public class Main {
 //        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
 //        InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS7);
 //        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//
+
 //        InputFileHandler.HeartRateJsonReader(PATH_TO_HR_TMS6);
 //        RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
 //        createDailyHRData();
@@ -32,7 +32,7 @@ public class Main {
 //        InputFileHandler.StepsJsonReader(PATH_TO_STEPS_TMS7);
 //        RepositoryHandler.addStepsData(InputFileHandler.getStepsData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
 
-        RepositoryHandler.executeRules();
+//        RepositoryHandler.executeRules();
 
         RepositoryHandler.closeConn();
     }
