@@ -76,13 +76,16 @@ public class RepositoryHandler {
 
     static void executeRules(){
         RulesHandler rules = new RulesHandler(con, ONTOLOGY_URI);
-//        rules.generateLowHRRule();
-//        rules.generateLackOfMovementRule();
-//        rules.generateLackOfSleepRule();
+        rules.generateLowHRRule();
+        rules.generateLackOfMovementRule();
+        rules.generateLackOfSleepRule();
         rules.generateRestlessnessRule();
     }
 
-    static void wipeLowHRRule() {}
+    static void wipeRules() {
+        RulesHandler rules = new RulesHandler(con, ONTOLOGY_URI);
+        rules.wipeAllRules();
+    }
 
     static void addSleepData(long[][] sleepData, String[] timeseries, String patientName) throws IOException {
         con.begin();

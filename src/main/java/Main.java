@@ -36,6 +36,7 @@ public class Main {
 //        createDailyData();
 
         RepositoryHandler.executeRules();
+//        RepositoryHandler.wipeRules();
 
         RepositoryHandler.closeConn();
     }
