@@ -2,6 +2,7 @@ import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Main {
     private static final String PATH_TO_SLEEP_TMS6 = "./Files/TMS6-Sleep.json";
@@ -14,29 +15,41 @@ public class Main {
     public static void main(String[] args) throws IOException, ParseException {
         RepositoryHandler.initRepo();
 
-//        InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS6);
-//        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//        createDailyData();
-//        InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS7);
-//        RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//        createDailyData();
-//
-//        InputFileHandler.HeartRateJsonReader(PATH_TO_HR_TMS6);
-//        RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//        createDailyData();
-//        InputFileHandler.HeartRateJsonReader(PATH_TO_HR_TMS7);
-//        RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//        createDailyData();
-//
-//        InputFileHandler.StepsJsonReader(PATH_TO_STEPS_TMS6);
-//        RepositoryHandler.addStepsData(InputFileHandler.getStepsData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//        createDailyData();
-//        InputFileHandler.StepsJsonReader(PATH_TO_STEPS_TMS7);
-//        RepositoryHandler.addStepsData(InputFileHandler.getStepsData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//        createDailyData();
+        Scanner input = new Scanner(System.in);
+        System.out.print("Enter 1 if you want to populate GraphDB with raw data, 2 if you want to execute rules into GraphDB, 3 if you want to wipe all rules in GraphDB:  ");
+        int number = input.nextInt();
 
-        RepositoryHandler.executeRules();
-//        RepositoryHandler.wipeRules();
+        while(number != 1 && number!=2 && number!=3){
+            System.out.print("Wrong input. Please try again:  ");
+            number = input.nextInt();
+        }
+
+        if (number == 1){
+            InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS6);
+            RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+            createDailyData();
+            InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS7);
+            RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+            createDailyData();
+
+            InputFileHandler.HeartRateJsonReader(PATH_TO_HR_TMS6);
+            RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+            createDailyData();
+            InputFileHandler.HeartRateJsonReader(PATH_TO_HR_TMS7);
+            RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+            createDailyData();
+
+            InputFileHandler.StepsJsonReader(PATH_TO_STEPS_TMS6);
+            RepositoryHandler.addStepsData(InputFileHandler.getStepsData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+            createDailyData();
+            InputFileHandler.StepsJsonReader(PATH_TO_STEPS_TMS7);
+            RepositoryHandler.addStepsData(InputFileHandler.getStepsData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+            createDailyData();
+        }else if (number == 2){
+            RepositoryHandler.executeRules();
+        }else{
+            RepositoryHandler.wipeRules();
+        }
 
         RepositoryHandler.closeConn();
     }

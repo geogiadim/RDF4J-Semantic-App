@@ -40,9 +40,9 @@ public class RulesHandler {
                 Value valueOfX = bindingSet.getValue("patient");
                 Value valueOfY = bindingSet.getValue("date");
                 Value valueOfZ = bindingSet.getValue("rate");
-                patients.add(valueOfX);
-                dates.add(valueOfY);
-                rates.add(valueOfZ);
+                this.patients.add(valueOfX);
+                this.dates.add(valueOfY);
+                this.rates.add(valueOfZ);
             }
         }
     }
@@ -248,6 +248,58 @@ public class RulesHandler {
             executeConstructQuery(queryString2);
         }
         con.commit();
+    }
+
+    void generateTooMuchSleepRule(){
+        patients = new ArrayList<>();
+        dates = new ArrayList<>();
+        rates = new ArrayList<>();
+
+        String queryString = PREFIXES +
+                "SELECT * \n" +
+                "WHERE{\n" +
+                "    ?obs a sosa:Observation;\n" +
+                "         sosa:observedProperty ?obProp;\n" +
+                "         pob:isObservationFor ?patient;\n" +
+                "         pob:minutesAsleep ?rate;\n" +
+                "         pob:startTime ?date.\n" +
+                "    ?obProp a pob:SleepProperty .\n" +
+                "    FILTER (?rate>\"480\"^^xsd:long)\n" +
+                "}";
+
+        prepareConstructQuery(queryString);
+
+        String patientName;
+        String date;
+        String date_for_construct;
+        con.begin();
+        for (int i=0; i < patients.toArray().length; i++) {
+            patientName = patients.get(i).toString().replace(ONTOLOGY_URI, "");
+            date = dates.get(i).toString().replace("^^<http://www.w3.org/2001/XMLSchema#dateTime>", "");
+            date = date.substring(1, date.length() - 17);
+            date_for_construct = dates.get(i).toString().replace("T00:00:00+00:00Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime>", "");
+            date_for_construct = date_for_construct.substring(1);
+            System.out.println(date_for_construct);
+            IRI problem = iri(ONTOLOGY_URI + "TooMuchSleepProblem_" + date + "_for_" + patientName);
+            String queryString2 = PREFIXES +
+                    "CONSTRUCT{\n" +
+                    "    <"+problem+"> a pob:TooMuchSleep;\n" +
+                    "                        pob:isSleepProblemOf <"+patients.get(i)+">;\n" +
+                    "                        sosa:resultTime \""+date_for_construct+"\"^^<http://www.w3.org/2001/XMLSchema#dateTime>;\n" +
+                    "                        pob:rate "+rates.get(i)+".\n" +
+                    "}\n" +
+                    "WHERE{\n" +
+                    "    ?obs a sosa:Observation;\n" +
+                    "         sosa:observedProperty ?obProp;\n" +
+                    "         pob:isObservationFor <"+patients.get(i)+">;\n" +
+                    "         pob:startTime "+dates.get(i)+".\n" +
+                    "    ?obProp a pob:SleepProperty .\n" +
+                    "}";
+
+            executeConstructQuery(queryString2);
+        }
+        con.commit();
+
     }
 
     void wipeAllRules(){

@@ -80,6 +80,7 @@ public class RepositoryHandler {
         rules.generateLackOfMovementRule();
         rules.generateLackOfSleepRule();
         rules.generateRestlessnessRule();
+        rules.generateTooMuchSleepRule();
     }
 
     static void wipeRules() {
