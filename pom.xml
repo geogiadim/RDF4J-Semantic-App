@@ -63,7 +63,7 @@
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        DailySleep.Main
+                                        Main
                                     </mainClass>
                                 </manifest>
                             </archive>

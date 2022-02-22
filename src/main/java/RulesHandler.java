@@ -305,12 +305,15 @@ public class RulesHandler {
     void wipeAllRules(){
         Model model = new TreeModel();
         try (RepositoryResult<Statement> statements = con.getStatements(null, RDF.TYPE, iri(HEALTH_PROBLEM))) {
+            con.begin();
             while (statements.hasNext()) {
                 Statement st = statements.next();
-                System.out.println(st);
-                model.add(st);
+                RepositoryResult<Statement> statements2 = con.getStatements(st.getSubject(), null, null);
+                while (statements2.hasNext()){
+                    Statement st2 = statements2.next();
+                    model.add(st2);
+                }
             }
-            con.begin();
             con.remove(model);
             con.commit();
         }
