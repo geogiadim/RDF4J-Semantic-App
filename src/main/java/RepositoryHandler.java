@@ -78,6 +78,7 @@ public class RepositoryHandler {
         RulesHandler rules = new RulesHandler(con, ONTOLOGY_URI);
         rules.generateLowHRRule();
         rules.generateLackOfMovementRule();
+        rules.generateLackOfSleepRule();
     }
 
     static void wipeLowHRRule() {}
