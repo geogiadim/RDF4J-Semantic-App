@@ -13,6 +13,7 @@ public class InputFileHandler {
     private static long[] heartRateData;
     private static long[] stepsData;
     private static String patient;
+    private static int dataType; // if 0 -> Sleep, if 1 -> HR, if 2 -> Steps
 
     public static void StepsJsonReader(String pathToFile) throws IOException, ParseException {
         // initialize a jason parser
@@ -36,6 +37,7 @@ public class InputFileHandler {
             timeseriesArray[i] = (String) dataRow.get("fields.created_at");
             i++;
         }
+        setDataType(2);
 //        printStepsData();
     }
 
@@ -62,6 +64,7 @@ public class InputFileHandler {
             timeseriesArray[i] = (String) dataRow.get("fields.created_at");
             i++;
         }
+        setDataType(1);
 //        printHeartRateData();
     }
 
@@ -101,6 +104,7 @@ public class InputFileHandler {
             timeseriesArray[i] = (String) dataRow.get("timeseries");
             i++;
         }
+        setDataType(0);
 //        printSleepData();
     }
 
@@ -133,4 +137,6 @@ public class InputFileHandler {
     public static String[] getTimeseriesArray() { return timeseriesArray; }
     public static String getPatient() { return patient; }
     public static long[] getHeartRateData() {return heartRateData;}
+    public static int getDataType() {return dataType;}
+    private static void setDataType(int val) {dataType = val;}
 }
