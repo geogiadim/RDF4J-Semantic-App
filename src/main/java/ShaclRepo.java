@@ -25,7 +25,19 @@ public class ShaclRepo {
             "pob:DateShape\n" +
             "  a sh:NodeShape ;\n" +
             "  sh:targetClass sosa:Observation ;\n" +
-            "  sh:property [ sh:path pob:startTime ; sh:maxCount 1 ; sh:minCount 1 ;].";
+            "  sh:property [ sh:path pob:startTime ; sh:datatype xsd:dateTime ;];\n" +
+            "  sh:property [ sh:path pob:endTime ; sh:datatype xsd:dateTime ;];\n" +
+            "  sh:property [ sh:path sosa:resultTime ; sh:datatype xsd:dateTime ;].";
+    private static final String OBS_SHAPE = PREFIXES +
+            "pob:DateShape\n" +
+            "  a sh:NodeShape ;\n" +
+            "  sh:targetClass sosa:Observation ;\n" +
+            "  sh:property [ sh:path sosa:observedProperty ; sh:or (" +
+            "       [sh:class pob:StepProperty] " +
+            "       [sh:class pob:SleepProperty] " +
+            "       [sh:class pob:HeartRateProperty]); " +
+            "  ].";
+
 
     private final SailRepositoryConnection connection;
     private boolean validation;
@@ -42,7 +54,7 @@ public class ShaclRepo {
     public void loadShaclRules() throws IOException {
         // add shacl shape
         connection.begin();
-        StringReader shaclRules = new StringReader(PATIENT_SHAPE);
+        StringReader shaclRules = new StringReader(String.join(DATE_SHAPE, PATIENT_SHAPE, OBS_SHAPE));
         connection.add(shaclRules, "", RDFFormat.TURTLE, RDF4J.SHACL_SHAPE_GRAPH);
         connection.commit();
     }
