@@ -3,17 +3,11 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.impl.TreeModel;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
-import org.eclipse.rdf4j.query.*;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.manager.RemoteRepositoryManager;
-import org.eclipse.rdf4j.rio.*;
-import org.junit.Rule;
-
 import java.io.IOException;
 import java.util.ArrayList;
-
 import static org.eclipse.rdf4j.model.util.Values.iri;
 import static org.eclipse.rdf4j.model.util.Values.literal;
 
@@ -25,6 +19,7 @@ public class RepositoryHandler {
     private static RemoteRepositoryManager manager;
     private static Repository repo;
     private static RepositoryConnection con;
+    private static Model model;
     private static final String ONTOLOGY_URI = "http://www.semanticweb.org/patient-observations#";
     // sleep properties
     private static final String REM_MINUTES = ONTOLOGY_URI+"remMinutes";
@@ -90,9 +85,8 @@ public class RepositoryHandler {
 
     static void addSleepData(long[][] sleepData, String[] timeseries, String patientName) throws IOException {
         con.begin();
-        Model model = new TreeModel();
+        model = new TreeModel();
         ValueFactory factory = SimpleValueFactory.getInstance();
-        IRI patient = iri(ONTOLOGY_URI+patientName);
         for (int i=0; i<sleepData.length; i++){
             IRI observationName = iri(ONTOLOGY_URI+"observation_sleep_"+ timeseries[i] +"_for_"+ patientName);
             IRI observableProperty = iri(ONTOLOGY_URI+"sleepProp");
@@ -101,7 +95,10 @@ public class RepositoryHandler {
             model.add(observationName, RDF.TYPE, iri(OBSERVATION));
             model.add(observationName, iri(OBSERVED_PROPERTY), observableProperty);
             model.add(observableProperty, RDF.TYPE, iri(SLEEP_PROPERTY));
-            model.add(observationName, iri(IS_OBS_FOR), patient);
+            if (patientName != null){
+                IRI patient = iri(ONTOLOGY_URI+patientName);
+                model.add(observationName, iri(IS_OBS_FOR), patient);
+            }
             model.add(observationName, iri(LIGHT_MINUTES), literal(sleepData[i][0]));
             model.add(observationName, iri(REM_MINUTES), literal(sleepData[i][1]));
             model.add(observationName, iri(DEEP_MINUTES), literal(sleepData[i][2]));
@@ -117,15 +114,13 @@ public class RepositoryHandler {
             model.add(observationName, iri(DEEP_COUNT), literal(sleepData[i][12]));
             model.add(observationName, iri(START_TIME), startTime);
             model.add(observationName, iri(END_TIME), endTime);
-
         }
         con.add(model);
-        con.commit();
     }
 
     static void addHeartRateData(long[] heartRateData, String[] timeseries, String patientName) throws IOException {
         con.begin();
-        Model model = new TreeModel();
+        model = new TreeModel();
         ValueFactory factory = SimpleValueFactory.getInstance();
         IRI patient = iri(ONTOLOGY_URI+patientName);
         for (int i=0; i<heartRateData.length; i++){
@@ -146,7 +141,7 @@ public class RepositoryHandler {
 
     static void addStepsData(long[] stepsData, String[] timeseries, String patientName) throws IOException {
         con.begin();
-        Model model = new TreeModel();
+        model = new TreeModel();
         ValueFactory factory = SimpleValueFactory.getInstance();
         IRI patient = iri(ONTOLOGY_URI+patientName);
         for (int i=0; i<stepsData.length; i++){
@@ -203,20 +198,20 @@ public class RepositoryHandler {
 //        }
 //    }
 
-    static void getPatients(){
-        ArrayList<Resource> patients = new ArrayList<>();
-        try (RepositoryResult<Statement> statements = con.getStatements(null, RDF.TYPE, iri(PATIENT), true)) {
-            while (statements.hasNext()) {
-                Statement st = statements.next();
-                System.out.println("Patient: "+st.getSubject());
-                patients.add(st.getSubject());
-            }
-        }
-
-        for (Resource p : patients){
-            System.out.println(p);
-        }
-    }
+//    static void getPatients(){
+//        ArrayList<Resource> patients = new ArrayList<>();
+//        try (RepositoryResult<Statement> statements = con.getStatements(null, RDF.TYPE, iri(PATIENT), true)) {
+//            while (statements.hasNext()) {
+//                Statement st = statements.next();
+//                System.out.println("Patient: "+st.getSubject());
+//                patients.add(st.getSubject());
+//            }
+//        }
+//
+//        for (Resource p : patients){
+//            System.out.println(p);
+//        }
+//    }
 
 //    static void getAllStatements() throws IOException {
 //        try (RepositoryResult<Statement> statements = con.getStatements(null, null, null, true)) {
@@ -229,12 +224,12 @@ public class RepositoryHandler {
 //            exportData(model);
 //        }
 //    }
-//
+
 //    static void exportData(Model model) throws IOException {
-//        FileOutputStream out = new FileOutputStream("./Files/export-data.rdf");
+//        FileOutputStream out = new FileOutputStream("./Files/export-data.ttl");
 //        try (out) {
 //            RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
-//            RDFWriter writer = Rio.createWriter(RDFFormat.RDFXML, out);
+//            RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, out);
 //            rdfParser.setRDFHandler(writer);
 //            rdfParser.getParserConfig().set(BasicParserSettings.VERIFY_URI_SYNTAX, false);
 //            rdfParser.getParserConfig().set(BasicParserSettings.PRESERVE_BNODE_IDS, true);
@@ -251,6 +246,7 @@ public class RepositoryHandler {
 //    }
 
     static void closeConn(){ con.close(); }
+    static Model getModel() { return model; }
     static String getSERVER_URL() { return SERVER_URL; }
     String getREPO_ID() { return  REPO_ID; }
     static RemoteRepositoryManager getManager() { return manager; }

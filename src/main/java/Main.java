@@ -1,6 +1,6 @@
-import org.eclipse.rdf4j.query.algebra.Str;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
 import org.json.simple.parser.ParseException;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -15,7 +15,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException, ParseException {
         Scanner input = new Scanner(System.in);
-        System.out.print("Enter 1 if you want to populate GraphDB with raw data, 2 if you want to execute rules into GraphDB, 3 if you want to wipe all rules in GraphDB:  ");
+        System.out.print("Enter 1 if you want to populate GraphDB with raw data, \n2 if you want to execute rules into GraphDB, \n3 if you want to wipe all rules in GraphDB:  ");
         int number = input.nextInt();
 
         while(number != 1 && number!=2 && number!=3){
@@ -24,9 +24,8 @@ public class Main {
         }
 
         if (number == 1){
-
             Scanner input2 = new Scanner(System.in);
-            System.out.print("Enter 1 if you want to populate sleep data, 2 for heartRate data, 3 for step data:  ");
+            System.out.print("Enter 1 if you want to populate sleep data, \n2 for heartRate data, \n3 for step data:  ");
             int number2 = input2.nextInt();
 
             while(number2 != 1 && number2 !=2 && number2 !=3){
@@ -38,53 +37,57 @@ public class Main {
             String file_path = input3.nextLine();
             RepositoryHandler.initRepo();
             if (number2 == 1){
+                //get data
                 InputFileHandler.SleepDataJsonReader(file_path);
+                //add data to a model
                 RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-                createDailyData();
+                //init shacl repository
+                ShaclRepo shaclRepository = new ShaclRepo();
+                shaclRepository.loadShaclRules();
+                executeValidation(shaclRepository);
             }else if (number2 == 2){
                 InputFileHandler.HeartRateJsonReader(file_path);
                 RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-                createDailyData();
+                //init shacl repository
+                ShaclRepo shaclRepository = new ShaclRepo();
+                shaclRepository.loadShaclRules();
+                executeValidation(shaclRepository);
             }else{
                 InputFileHandler.StepsJsonReader(file_path);
                 RepositoryHandler.addStepsData(InputFileHandler.getStepsData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-                createDailyData();
+                //init shacl repository
+                ShaclRepo shaclRepository = new ShaclRepo();
+                shaclRepository.loadShaclRules();
+                executeValidation(shaclRepository);
             }
-
-
-//            InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS6);
-//            RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//            createDailyData();
-//            InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS7);
-//            RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//            createDailyData();
-//
-//            InputFileHandler.HeartRateJsonReader(PATH_TO_HR_TMS6);
-//            RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//            createDailyData();
-//            InputFileHandler.HeartRateJsonReader(PATH_TO_HR_TMS7);
-//            RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//            createDailyData();
-//
-//            InputFileHandler.StepsJsonReader(PATH_TO_STEPS_TMS6);
-//            RepositoryHandler.addStepsData(InputFileHandler.getStepsData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//            createDailyData();
-//            InputFileHandler.StepsJsonReader(PATH_TO_STEPS_TMS7);
-//            RepositoryHandler.addStepsData(InputFileHandler.getStepsData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
-//            createDailyData();
-
         }else if (number == 2){
             RepositoryHandler.initRepo();
             RepositoryHandler.executeRules();
+            RepositoryHandler.closeConn();
         }else{
             RepositoryHandler.initRepo();
             RepositoryHandler.wipeRules();
+            RepositoryHandler.closeConn();
         }
-
-        RepositoryHandler.closeConn();
     }
 
-    static void createDailyData(){
+    private static void executeValidation(ShaclRepo shaclRepository){
+        //execute validation and check if model passes it
+        shaclRepository.executeShaclValidation(RepositoryHandler.getModel());
+        boolean validation = shaclRepository.getValidation();
+        if (validation){
+            //if true commit data to repo and add daily data to repo
+            RepositoryHandler.getRepoConnection().commit();
+            createDailyData();
+        }else{
+            RepositoryHandler.closeConn();
+            Rio.write(shaclRepository.getValidationReportModel(), System.out, RDFFormat.TURTLE);
+            System.out.println("SHACL VIOLATION");
+        }
+        shaclRepository.closeConnection();
+    }
+
+    private static void createDailyData(){
         // if 0 -> Sleep, if 1 -> HR, if 2 -> Steps
         int dataType = InputFileHandler.getDataType();
         if(dataType != 0){
@@ -140,5 +143,27 @@ public class Main {
         }
 
     }
-
 }
+
+
+//            RepositoryHandler.initRepo();
+//            InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS6);
+//            RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+//            createDailyData();
+//            InputFileHandler.SleepDataJsonReader(PATH_TO_SLEEP_TMS7);
+//            RepositoryHandler.addSleepData(InputFileHandler.getSleepData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+//            createDailyData();
+//
+//            InputFileHandler.HeartRateJsonReader(PATH_TO_HR_TMS6);
+//            RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+//            createDailyData();
+//            InputFileHandler.HeartRateJsonReader(PATH_TO_HR_TMS7);
+//            RepositoryHandler.addHeartRateData(InputFileHandler.getHeartRateData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+//            createDailyData();
+//
+//            InputFileHandler.StepsJsonReader(PATH_TO_STEPS_TMS6);
+//            RepositoryHandler.addStepsData(InputFileHandler.getStepsData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+//            createDailyData();
+//            InputFileHandler.StepsJsonReader(PATH_TO_STEPS_TMS7);
+//            RepositoryHandler.addStepsData(InputFileHandler.getStepsData(), InputFileHandler.getTimeseriesArray(), InputFileHandler.getPatient());
+//            createDailyData();
