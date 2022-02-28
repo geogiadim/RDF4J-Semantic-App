@@ -66,7 +66,6 @@ public class RepositoryHandler {
         repo = manager.getRepository(REPO_ID);
         // connect to the repo
         con = repo.getConnection();
-
     }
 
     static void executeRules(){
@@ -122,7 +121,6 @@ public class RepositoryHandler {
         con.begin();
         model = new TreeModel();
         ValueFactory factory = SimpleValueFactory.getInstance();
-        IRI patient = iri(ONTOLOGY_URI+patientName);
         for (int i=0; i<heartRateData.length; i++){
             IRI observationName = iri(ONTOLOGY_URI+"observation_hr_"+ timeseries[i] +"_for_"+ patientName);
             IRI observableProperty = iri(ONTOLOGY_URI+"heartRateProp");
@@ -130,20 +128,21 @@ public class RepositoryHandler {
             model.add(observationName, RDF.TYPE, iri(OBSERVATION));
             model.add(observationName, iri(OBSERVED_PROPERTY), observableProperty);
             model.add(observableProperty, RDF.TYPE, iri(HEART_RATE_PROPERTY));
-            model.add(observationName, iri(IS_OBS_FOR), patient);
+            if (patientName != null){
+                IRI patient = iri(ONTOLOGY_URI+patientName);
+                model.add(observationName, iri(IS_OBS_FOR), patient);
+            }
             model.add(observationName, iri(RATE), literal(heartRateData[i]));
             model.add(observationName, iri(RESULT_TIME), resultTime);
 
         }
         con.add(model);
-        con.commit();
     }
 
     static void addStepsData(long[] stepsData, String[] timeseries, String patientName) throws IOException {
         con.begin();
         model = new TreeModel();
         ValueFactory factory = SimpleValueFactory.getInstance();
-        IRI patient = iri(ONTOLOGY_URI+patientName);
         for (int i=0; i<stepsData.length; i++){
             IRI observationName = iri(ONTOLOGY_URI+"observation_step_"+ timeseries[i] +"_for_"+ patientName);
             IRI observableProperty = iri(ONTOLOGY_URI+"stepProp");
@@ -151,13 +150,15 @@ public class RepositoryHandler {
             model.add(observationName, RDF.TYPE, iri(OBSERVATION));
             model.add(observationName, iri(OBSERVED_PROPERTY), observableProperty);
             model.add(observableProperty, RDF.TYPE, iri(STEP_PROPERTY));
-            model.add(observationName, iri(IS_OBS_FOR), patient);
+            if (patientName != null){
+                IRI patient = iri(ONTOLOGY_URI+patientName);
+                model.add(observationName, iri(IS_OBS_FOR), patient);
+            }
             model.add(observationName, iri(RATE), literal(stepsData[i]));
             model.add(observationName, iri(RESULT_TIME), resultTime);
 
         }
         con.add(model);
-        con.commit();
     }
 
     static void addDailyMeasurements(ArrayList<Double> dailyMeasurements, ArrayList<String> timeseries, String patientName, int type){
