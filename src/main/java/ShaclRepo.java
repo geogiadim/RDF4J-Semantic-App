@@ -29,7 +29,7 @@ public class ShaclRepo {
             "  sh:property [ sh:path pob:endTime ; sh:datatype xsd:dateTime ;];\n" +
             "  sh:property [ sh:path sosa:resultTime ; sh:datatype xsd:dateTime ;].";
     private static final String OBS_SHAPE = PREFIXES +
-            "pob:DateShape\n" +
+            "pob:ObservedPropertyShape\n" +
             "  a sh:NodeShape ;\n" +
             "  sh:targetClass sosa:Observation ;\n" +
             "  sh:property [ sh:path sosa:observedProperty ; sh:or (" +
